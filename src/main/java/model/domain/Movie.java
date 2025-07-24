@@ -1,14 +1,36 @@
 package model.domain;
 
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
+
+import javax.persistence.*;
 import java.sql.Date;
 
-// 영화제목, 날짜, 시청일, 수정여부, 평점, 내용
+@Entity
+@Table(name = "movie")
+@Getter
+@Setter
+@NoArgsConstructor
 public class Movie {
-	private int id;
-	private String title;
-	private Date createDate;
-	private Date watchDate;
-	private int score;
-	private String content;
-	private boolean isfix;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int id;
+
+    private String title;
+
+    @Column(name = "createDate")
+    private Date createDate;
+
+    @Column(name = "watchDate")
+    private Date watchDate;
+
+    @Column(columnDefinition = "INT CHECK (score BETWEEN 0 AND 5)")
+    private int score;
+
+    @Column(columnDefinition = "TEXT")
+    private String content;
+
+    private boolean isfix;
 }
