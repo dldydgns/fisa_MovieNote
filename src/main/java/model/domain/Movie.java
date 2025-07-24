@@ -33,4 +33,15 @@ public class Movie {
     private String content;
 
     private boolean isfix;
+<<<<<<< HEAD
 }
+=======
+    
+    @PrePersist
+    protected void onCreate() {
+        if (this.createDate == null) {
+            this.createDate = new Date(System.currentTimeMillis());
+        }
+    }
+}
+>>>>>>> develop
