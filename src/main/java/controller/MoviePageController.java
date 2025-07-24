@@ -8,7 +8,8 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import model.domain.Movie;
+import model.dto.MovieDetailDTO;
+import model.dto.MovieListDTO;
 import service.MovieService;
 
 @WebServlet("/movies/*")
@@ -18,30 +19,37 @@ public class MoviePageController extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    	
         String pathInfo = req.getPathInfo();
 
         if (pathInfo == null || "/".equals(pathInfo)) {
-            // /movies
+
             String sort = req.getParameter("sort");
             int page = parseIntOrDefault(req.getParameter("page"), 1);
-            int size = parseIntOrDefault(req.getParameter("size"), 10);
+            int size = parseIntOrDefault(req.getParameter("size"), 15);
 
-            List<Movie> movies = movieService.getMovies(sort, page, size);
+            List<MovieListDTO> movies = movieService.getMovies(sort, page, size);
+            
             req.setAttribute("movies", movies);
             req.getRequestDispatcher("/WEB-INF/views/movies/list.jsp").forward(req, resp);
+            
 
         } else if ("/new".equals(pathInfo)) {
-            // /movies/new
-            req.getRequestDispatcher("/WEB-INF/views/movies/new.jsp").forward(req, resp);
+        	
+        	resp.sendRedirect("/WEB-INF/views/movies/new.jsp");
+//            req.getRequestDispatcher("/WEB-INF/views/movies/new.jsp").forward(req, resp);
 
         } else if (pathInfo.matches("/\\d+/edit")) {
-            // /movies/{id}/edit
+        	
             long id = extractIdFromPath(pathInfo);
-            Movie movie = movieService.findById(id);
+            MovieDetailDTO movie = movieService.findById(id);
+            
             if (movie == null) {
+            	// id값에 해당하는 정보가 없는것이므로 에러페이지로 이동 필요	??
                 resp.sendError(HttpServletResponse.SC_NOT_FOUND);
                 return;
             }
+            
             req.setAttribute("movie", movie);
             req.getRequestDispatcher("/WEB-INF/views/movies/edit.jsp").forward(req, resp);
 
@@ -68,4 +76,3 @@ public class MoviePageController extends HttpServlet {
         return -1;
     }
 }
-

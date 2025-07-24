@@ -1,15 +1,14 @@
 package controller;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.sql.Date;
 
+import model.dto.MovieResponseDTO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import model.domain.Movie;
+import model.dto.MovieRequestDTO;
 import service.MovieService;
 
 @WebServlet("/movies/api/*")
@@ -22,50 +21,61 @@ public class MovieApiController extends HttpServlet {
         String pathInfo = req.getPathInfo();
 
         if ("/new".equals(pathInfo)) {
-            Movie movie = parseMovieFromRequest(req);
-            movieService.save(movie);
+        	
+            MovieRequestDTO dto = parseRequest(req);
+            MovieResponseDTO saved = movieService.save(dto);
 
-            req.setAttribute("movie", movie);
+            req.setAttribute("movie", saved);
+            req.setAttribute("msg", "저장에 성공했습니다.");
             req.getRequestDispatcher("/WEB-INF/views/movies/result.jsp").forward(req, resp);
 
         } else if (pathInfo != null && pathInfo.matches("/\\d+/edit")) {
+        	
             int id = extractIdFromPath(pathInfo);
-            Movie movie = parseMovieFromRequest(req);
-            movie.setId(id);
-            movieService.update(movie);
+            MovieRequestDTO dto = parseRequest(req);
+            MovieResponseDTO updated = movieService.update(id, dto);
 
-            req.setAttribute("movie", movie);
+            req.setAttribute("movie", updated);
+            req.setAttribute("msg", "수정에 성공했습니다.");
             req.getRequestDispatcher("/WEB-INF/views/movies/result.jsp").forward(req, resp);
 
         } else if (pathInfo != null && pathInfo.matches("/\\d+/delete")) {
             int id = extractIdFromPath(pathInfo);
             movieService.delete(id);
 
-            req.getRequestDispatcher("/WEB-INF/views/movies/deleteResult.jsp").forward(req, resp);
+            req.setAttribute("msg", "삭제에 성공했습니다.");
+            req.getRequestDispatcher("/WEB-INF/views/movies/result.jsp").forward(req, resp);
 
         } else {
             resp.sendError(HttpServletResponse.SC_NOT_FOUND);
         }
     }
 
-    private Movie parseMovieFromRequest(HttpServletRequest req) throws UnsupportedEncodingException {
+    private MovieRequestDTO parseRequest(HttpServletRequest req) throws IOException {
         req.setCharacterEncoding("UTF-8");
-        String title = req.getParameter("title");
-        String watchDate = req.getParameter("watchDate");
-        String scoreStr = req.getParameter("score");
-        String content = req.getParameter("content");
 
-        Movie movie = new Movie();
-        movie.setTitle(title);
-        if (watchDate != null && !watchDate.isEmpty()) {
-            movie.setWatchDate(Date.valueOf(watchDate));
-        }
-        if (scoreStr != null && !scoreStr.isEmpty()) {
-            movie.setScore(Integer.parseInt(scoreStr));
-        }
-        movie.setContent(content);
+        return MovieRequestDTO.builder()
+                .title(req.getParameter("title"))
+                .score(parseInt(req.getParameter("score")))
+                .content(req.getParameter("content"))
+                .watchDate(parseDate(req.getParameter("watchDate")))
+                .build();
+    }
 
-        return movie;
+    private Integer parseInt(String value) {
+        try {
+            return value != null ? Integer.parseInt(value) : null;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private java.sql.Date parseDate(String value) {
+        try {
+            return value != null ? java.sql.Date.valueOf(value) : null;
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private int extractIdFromPath(String pathInfo) {
