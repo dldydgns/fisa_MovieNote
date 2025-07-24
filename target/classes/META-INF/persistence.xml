@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence version="2.2"
+             xmlns="http://xmlns.jcp.org/xml/ns/persistence"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="
+                http://xmlns.jcp.org/xml/ns/persistence
+                http://xmlns.jcp.org/xml/ns/persistence/persistence_2_2.xsd">
+
+    <persistence-unit name="dbinfo" transaction-type="RESOURCE_LOCAL">
+        <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+
+        <!-- 엔티티 클래스 자동 검색 or 명시 가능 -->
+        <class>model.domain.Movie</class>
+
+        <properties>
+            <!-- JDBC 연결 설정 -->
+            <property name="javax.persistence.jdbc.driver" value="com.mysql.cj.jdbc.Driver"/>
+            <property name="javax.persistence.jdbc.url" value="jdbc:mysql://localhost:3306/fisa"/>
+            <property name="javax.persistence.jdbc.user" value="root"/>
+            <property name="javax.persistence.jdbc.password" value="root"/>
+
+            <!-- Hibernate 방언(Dialect) -->
+            <property name="hibernate.dialect" value="org.hibernate.dialect.MySQL8Dialect"/>
+
+            <!-- 스키마 자동 생성 설정 -->
+            <property name="hibernate.hbm2ddl.auto" value="update"/>
+            <!-- create: 매번 새로 생성
+                 update: 변경사항만 반영
+                 validate: 스키마 유효성 검사
+                 none: 아무 동작 안함 -->
+
+            <!-- SQL 로그 출력 -->
+            <property name="hibernate.show_sql" value="true"/>
+            <property name="hibernate.format_sql" value="true"/>
+
+            <!-- JDBC 배치, 커넥션 풀 등 추가 설정 가능 -->
+        </properties>
+    </persistence-unit>
+</persistence>
