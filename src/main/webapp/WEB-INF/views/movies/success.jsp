@@ -27,7 +27,7 @@
             </div>
         </c:if>
 
-        <a href="${pageContext.request.contextPath}/movies">목록으로 돌아가기</a>
+        <a href="${pageContext.request.contextPath}/movies?sort=${sort}&page=${page}&size=${size}">목록으로 돌아가기</a>
     </div>
 </body>
 </html>

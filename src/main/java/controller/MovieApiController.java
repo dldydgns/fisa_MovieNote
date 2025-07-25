@@ -21,6 +21,10 @@ public class MovieApiController extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String pathInfo = req.getPathInfo();
 
+        req.setAttribute("sort", req.getParameter("sort"));
+        req.setAttribute("page", req.getParameter("page"));
+        req.setAttribute("size", req.getParameter("size"));
+
         if ("/new".equals(pathInfo)) {
         	
         	try {
@@ -31,26 +35,37 @@ public class MovieApiController extends HttpServlet {
                 req.setAttribute("msg", "저장에 성공했습니다.");
                 req.getRequestDispatcher("/WEB-INF/views/movies/success.jsp").forward(req, resp);
         	} catch(Exception e) {
-                req.setAttribute("msg", "저장에 성공했습니다.");
-                req.getRequestDispatcher("/WEB-INF/views/movies/success.jsp").forward(req, resp);
+                req.setAttribute("msg", "저장에 실패했습니다.");
+                req.getRequestDispatcher("/WEB-INF/views/movies/fail.jsp").forward(req, resp);
         	}
 
         } else if (pathInfo != null && pathInfo.matches("/\\d+/edit")) {
         	
-            int id = extractIdFromPath(pathInfo);
-            MovieRequestDTO dto = parseRequest(req);
-            MovieResponseDTO updated = movieService.update(id, dto);
+        	try {
+                int id = extractIdFromPath(pathInfo);
+                MovieRequestDTO dto = parseRequest(req);
+                MovieResponseDTO updated = movieService.update(id, dto);
 
-            req.setAttribute("movie", updated);
-            req.setAttribute("msg", "수정에 성공했습니다.");
-            req.getRequestDispatcher("/WEB-INF/views/movies/success.jsp").forward(req, resp);
+                req.setAttribute("movie", updated);
+                req.setAttribute("msg", "수정에 성공했습니다.");
+                req.getRequestDispatcher("/WEB-INF/views/movies/success.jsp").forward(req, resp);
+        	} catch(Exception e) {
+                req.setAttribute("msg", "저장에 실패했습니다.");
+                req.getRequestDispatcher("/WEB-INF/views/movies/fail.jsp").forward(req, resp);
+        	}
 
         } else if (pathInfo != null && pathInfo.matches("/\\d+/delete")) {
-            int id = extractIdFromPath(pathInfo);
-            movieService.delete(id);
+        	
+        	try {
+                int id = extractIdFromPath(pathInfo);
+                movieService.delete(id);
 
-            req.setAttribute("msg", "삭제에 성공했습니다.");
-            req.getRequestDispatcher("/WEB-INF/views/movies/success.jsp").forward(req, resp);
+                req.setAttribute("msg", "삭제에 성공했습니다.");
+                req.getRequestDispatcher("/WEB-INF/views/movies/success.jsp").forward(req, resp);
+        	} catch(Exception e) {
+                req.setAttribute("msg", "저장에 실패했습니다.");
+                req.getRequestDispatcher("/WEB-INF/views/movies/fail.jsp").forward(req, resp);
+        	}
 
         } else {
             resp.sendError(HttpServletResponse.SC_NOT_FOUND);
