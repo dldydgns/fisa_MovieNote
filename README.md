@@ -7,15 +7,16 @@ CRUD 기능 중심,  MVC 패턴과 DB 연동 등을 학습하고 구현한 프�
 ---
 
 ## 👥팀소개
-<div align="center">
-  
-|이용훈|이영주|전수민|이기현|
-|:---:|:---:|:---:|:---:|
-|[dldydgns](https://github.com/dldydgns)|[0-zoo](https://github.com/0-zoo)|[Jsumin07](https://github.com/Jsumin07)|[GIHYUN-LEE](https://github.com/GIHYUN-LEE)|
-|<img width="460" height="460" alt="image" src="https://github.com/user-attachments/assets/1073d700-137b-4007-8e34-422d2f29ec28" />|<img width="480" height="480" alt="image" src="https://github.com/user-attachments/assets/55201bed-aa5f-494c-a313-2d9ea2f80279" />|<img width="460" height="460" alt="image" src="https://github.com/user-attachments/assets/0a7ffa11-22a0-4316-8be0-c872f94e76c3" />|<img width="460" height="460" alt="image" src="https://github.com/user-attachments/assets/4e3eba16-866b-46d5-9a17-a20f8dc3ad8b" />
-  
-</div>
+<table align ="center">
+  <tbody>
+    <tr>
+      <td align="center"><a href="https://github.com/GIHYUN-LEE"><img src="https://github.com/GIHYUN-LEE.png" width="100px;" alt=""/><br /><sub><b> @GIHYUN-LEE</b></sub></a><br /></td>
+      <td align="center"><a href="https://github.com/0-zoo"><img src="https://github.com/0-zoo.png" width="100px;" alt=""/><br /><sub><b> @0-zoog</b></sub></a><br /></td>
+      <td align="center"><a href="https://github.com/dldydgns"><img src="https://github.com/dldydgns.png" width="100px;" alt=""/><br /><sub><b> @dldydgns</b></sub></a><br /></td>
+      <td align="center"><a href="https://github.com/Jsumin07"><img src="https://github.com/Jsumin07.png" width="100px;" alt=""/><br /><sub><b> @Jsumin07</b></sub></a><br /></td>
 
+  </tbody>
+</table>
 ---
 
 
