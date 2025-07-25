@@ -31,7 +31,19 @@ public class MovieService {
                 jpql += " ORDER BY m.watchDate DESC";
             } else if ("title".equalsIgnoreCase(sort)) {
                 jpql += " ORDER BY m.title ASC";
+            } else if ("scoreAsc".equalsIgnoreCase(sort)) {
+                jpql += " ORDER BY m.score ASC";
+            } else if ("scoreDesc".equalsIgnoreCase(sort)) {
+                jpql += " ORDER BY m.score DESC";
+            } else if ("dateAsc".equalsIgnoreCase(sort)) {
+                jpql += " ORDER BY m.watchDate ASC";
+            } else if ("dateDesc".equalsIgnoreCase(sort)) {
+                jpql += " ORDER BY m.watchDate DESC";
+            } else {
+                jpql += " ORDER BY m.id ASC"; // 기본 정렬
             }
+            
+            
 
             TypedQuery<Movie> query = em.createQuery(jpql, Movie.class);
             query.setFirstResult((page - 1) * size);

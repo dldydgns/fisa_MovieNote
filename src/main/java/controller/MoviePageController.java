@@ -31,8 +31,7 @@ public class MoviePageController extends HttpServlet {
             List<MovieListDTO> movies = movieService.getMovies(sort, page, size);
             
             req.setAttribute("movies", movies);
-            req.getRequestDispatcher("/MovieNote/WEB-INF/views/movies/list.jsp").forward(req, resp);
-            
+            req.getRequestDispatcher("/WEB-INF/views/movies/list.jsp").forward(req, resp);
 
         } else if ("/new".equals(pathInfo)) {
         	
