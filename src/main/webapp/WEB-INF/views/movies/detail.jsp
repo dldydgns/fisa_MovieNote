@@ -1,5 +1,10 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
 <%@ page import="model.dto.MovieDetailDTO" %>
+<%! 
+    private String getOrDefault(String param, String defaultVal) {
+        return (param != null && !"null".equals(param)) ? param : defaultVal;
+    }
+%>
 <%
     MovieDetailDTO movie = (MovieDetailDTO) request.getAttribute("movie");
 %>
@@ -106,8 +111,9 @@
     </div>
 
     <div class="button-group">
-        <a href="/MovieNote/movies?page=1" class="btn btn-back">← 목록으로</a>
-        <a href="/MovieNote/movies/<%= movie.getId() %>/edit" class="btn btn-edit">✏ 수정하기</a>
+		<a href="/MovieNote/movies?page=<%= getOrDefault(request.getParameter("page"), "1") %>&sort=<%= getOrDefault(request.getParameter("sort"), "dateDesc") %>&size=<%= getOrDefault(request.getParameter("size"), "15") %>" class="btn btn-back">← 목록으로</a>
+		<a href="/MovieNote/movies/<%= movie.getId() %>/edit?page=<%= request.getParameter("page") != null ? request.getParameter("page") : "" %>&sort=<%= request.getParameter("sort") != null ? request.getParameter("sort") : "" %>&size=<%= request.getParameter("size") != null ? request.getParameter("size") : "" %>" class="btn btn-edit">✏ 수정하기</a>
+
     </div>
 </div>
 </body>

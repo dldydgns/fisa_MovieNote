@@ -125,7 +125,7 @@
     <div class="form-container">
         <h2>✏️ 영화 리뷰 수정</h2>
 
-        <form action="<%= request.getContextPath() %>/reviews/edit" method="post">
+		<form action="<%= request.getContextPath() %>/movies/api/<%= review.getId() %>/edit" method="post">
             <input type="hidden" name="id" value="<%= review.getId() %>">
     		<input type="hidden" name="page" value="<%= request.getParameter("page") != null ? request.getParameter("page") : "1" %>">
     		<input type="hidden" name="sort" value="<%= request.getAttribute("sort") != null ? request.getAttribute("sort") : "" %>">
@@ -161,7 +161,10 @@
 
             <div class="button-group">
                 <button type="submit" class="submit-btn">수정 완료</button>
-                <button type="button" class="cancel-btn" onclick="location.href='<%= request.getContextPath() %>/reviews/edit'">취소</button>
+				<button type="button" class="cancel-btn" 
+				    onclick="location.href='<%= request.getContextPath() %>/movies/<%= review.getId() %>?sort=<%= request.getParameter("sort") != null ? request.getParameter("sort") : "" %>&page=<%= request.getParameter("page") != null ? request.getParameter("page") : "" %>&size=<%= request.getParameter("size") != null ? request.getParameter("size") : "" %>'">
+				    취소
+				</button>
             </div>
         </form>
     </div>

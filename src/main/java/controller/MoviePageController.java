@@ -24,22 +24,26 @@ public class MoviePageController extends HttpServlet {
 
         if (pathInfo == null || "/".equals(pathInfo)) {
 
-            String sort = req.getParameter("sort");
-            int page = parseIntOrDefault(req.getParameter("page"), 1);
-            int size = parseIntOrDefault(req.getParameter("size"), 15);
+        	String sort = req.getParameter("sort");
+        	if (sort == "" || sort == null || "null".equals(sort)) {
+        	    sort = "dateDesc";
+        	}
+        	int page = parseIntOrDefault(req.getParameter("page"), 1);
+        	int size = parseIntOrDefault(req.getParameter("size"), 15);
+
 
             List<MovieListDTO> movies = movieService.getMovies(sort, page, size);
             
             req.setAttribute("movies", movies);
             req.setAttribute("sort", sort);
+            req.setAttribute("page", page);
+            req.setAttribute("size", size);
             req.getRequestDispatcher("/WEB-INF/views/movies/list.jsp").forward(req, resp);
             
 
         } else if ("/new".equals(pathInfo)) {
         	
         	req.getRequestDispatcher("/WEB-INF/views/movies/Review_write.jsp").forward(req, resp);
-//        	resp.sendRedirect("/WEB-INF/views/movies/Review_write.jsp");
-//            req.getRequestDispatcher("/WEB-INF/views/movies/new.jsp").forward(req, resp);
 
         } else if (pathInfo.matches("/\\d+/edit")) {
 
@@ -61,6 +65,7 @@ public class MoviePageController extends HttpServlet {
 
             
         } else if (pathInfo.matches("/\\d+")) {
+        	
             long id = extractIdFromPath(pathInfo);
             MovieDetailDTO movie = movieService.findById(id);
 
@@ -71,6 +76,7 @@ public class MoviePageController extends HttpServlet {
 
             req.setAttribute("movie", movie);
             req.getRequestDispatcher("/WEB-INF/views/movies/detail.jsp").forward(req, resp);
+            
         }else {
             resp.sendError(HttpServletResponse.SC_NOT_FOUND);
         }
