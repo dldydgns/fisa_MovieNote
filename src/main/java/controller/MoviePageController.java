@@ -24,13 +24,20 @@ public class MoviePageController extends HttpServlet {
 
         if (pathInfo == null || "/".equals(pathInfo)) {
 
-            String sort = req.getParameter("sort");
-            int page = parseIntOrDefault(req.getParameter("page"), 1);
-            int size = parseIntOrDefault(req.getParameter("size"), 15);
+        	String sort = req.getParameter("sort");
+        	if (sort == "" || sort == null || "null".equals(sort)) {
+        	    sort = "dateDesc";
+        	}
+        	int page = parseIntOrDefault(req.getParameter("page"), 1);
+        	int size = parseIntOrDefault(req.getParameter("size"), 15);
+
 
             List<MovieListDTO> movies = movieService.getMovies(sort, page, size);
             
             req.setAttribute("movies", movies);
+            req.setAttribute("sort", sort);
+            req.setAttribute("page", page);
+            req.setAttribute("size", size);
             req.getRequestDispatcher("/WEB-INF/views/movies/list.jsp").forward(req, resp);
 
         } else if ("/new".equals(pathInfo)) {
@@ -38,20 +45,41 @@ public class MoviePageController extends HttpServlet {
         	req.getRequestDispatcher("/WEB-INF/views/movies/Review_write.jsp").forward(req, resp);
 
         } else if (pathInfo.matches("/\\d+/edit")) {
-        	
+
             long id = extractIdFromPath(pathInfo);
             MovieDetailDTO movie = movieService.findById(id);
-            
+
             if (movie == null) {
-            	// id값에 해당하는 정보가 없는것이므로 에러페이지로 이동 필요	??
                 resp.sendError(HttpServletResponse.SC_NOT_FOUND);
                 return;
             }
-            
-            req.setAttribute("movie", movie);
-            req.getRequestDispatcher("/MovieNote/WEB-INF/views/movies/edit.jsp").forward(req, resp);
 
-        } else {
+            String page = req.getParameter("page");
+            String sort = req.getParameter("sort");
+            String size = req.getParameter("size");
+            
+            
+            req.setAttribute("review", movie);
+            req.setAttribute("page", page);  // ✅ 추가
+            req.setAttribute("sort", sort);  // ✅ 추가
+            req.setAttribute("size", size);  // ✅ 추가
+            req.getRequestDispatcher("/WEB-INF/views/movies/Review_edit.jsp").forward(req, resp); // ✅ 파일명도 명확히
+
+            
+        } else if (pathInfo.matches("/\\d+")) {
+        	
+            long id = extractIdFromPath(pathInfo);
+            MovieDetailDTO movie = movieService.findById(id);
+
+            if (movie == null) {
+                resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+                return;
+            }
+
+            req.setAttribute("movie", movie);
+            req.getRequestDispatcher("/WEB-INF/views/movies/detail.jsp").forward(req, resp);
+            
+        }else {
             resp.sendError(HttpServletResponse.SC_NOT_FOUND);
         }
     }

@@ -1,5 +1,10 @@
 <%@ page contentType="text/html;charset=UTF-8"%>
 <%@ page import="java.util.*, model.dto.MovieListDTO"%>
+<%! 
+    private String getOrDefault(String param, String defaultVal) {
+        return (param != null && !"null".equals(param)) ? param : defaultVal;
+    }
+%>
 <%
 List<MovieListDTO> list = (List<MovieListDTO>) request.getAttribute("movies");
 int currentPage = request.getParameter("page") != null ? Integer.parseInt(request.getParameter("page")) : 1;
@@ -194,8 +199,10 @@ h2 {
 		<h2>🎬 MovieNote</h2>
 
 		<div class="top-bar">
-			<a href="/MovieNote/movies/new" class="new-review-btn">+ 새로운 리뷰
-				작성</a>
+		
+			<a href="/MovieNote/movies/new?page=<%= getOrDefault(request.getParameter("page"), "1") %>&sort=<%= getOrDefault(request.getParameter("sort"), "dateDesc") %>&size=<%= getOrDefault(request.getParameter("size"), "15") %>" class="new-review-btn">
+				+ 새로운 리뷰
+			</a>
 			<form class="sort-bar" method="get" action="/MovieNote/movies">
 				<input type="hidden" name="page" value="<%=currentPage%>">
 				<select name="sort" onchange="this.form.submit()">
@@ -204,8 +211,7 @@ h2 {
 					<option value="dateAsc"
 						<%="dateAsc".equals(sort) ? "selected" : ""%>>📅 오래된순</option>
 					<option value="scoreDesc"
-						<%="scoreDesc".equals(sort) ? "selected" : ""%>>⭐ 평점
-						높은순</option>
+						<%="scoreDesc".equals(sort) ? "selected" : ""%>>⭐ 평점 높은순</option>
 					<option value="scoreAsc"
 						<%="scoreAsc".equals(sort) ? "selected" : ""%>>⭐ 평점 낮은순</option>
 				</select>
@@ -219,12 +225,15 @@ h2 {
 					int score = m.getScore();
 					StringBuilder stars = new StringBuilder();
 					for (int i = 0; i < 5; i++) {
-				stars.append(i < score ? "★" : "☆");
+						stars.append(i < score ? "★" : "☆");
 					}
 			%>
 			<div class="movie-card">
-				<a href="/MovieNote/movies/<%=m.getId()%>"
-					style="text-decoration: none; color: inherit;">
+				<a href="/MovieNote/movies/<%=m.getId()%>?
+				sort=<%=request.getParameter("sort")%>&
+				page=<%=request.getParameter("page")%>&
+				size=<%=request.getParameter("size")%>"
+				style="text-decoration: none; color: inherit;">
 					<div class="movie-info">
 						<div class="movie-title"><%=m.getTitle()%></div>
 						<div class="movie-date">

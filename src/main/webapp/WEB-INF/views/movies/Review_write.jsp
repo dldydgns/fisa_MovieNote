@@ -1,5 +1,10 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
+<%! 
+    private String getOrDefault(String param, String defaultVal) {
+        return (param != null && !"null".equals(param)) ? param : defaultVal;
+    }
+%>
 <!DOCTYPE html>
 <html>
 <head>
@@ -136,7 +141,8 @@
         <textarea name="content" id="content" rows="6" required></textarea>
 
         <button type="submit">작성 완료</button>
-        <button type="button" class="cancel" onclick="location.href='/MovieNote/movies'">취소</button>
+        <button type="button" class="cancel" onclick="location.href='/MovieNote/movies?page=<%= getOrDefault(request.getParameter("page"), "1") %>&sort=<%= getOrDefault(request.getParameter("sort"), "dateDesc") %>&size=<%= getOrDefault(request.getParameter("size"), "15") %>'">취소</button>
+
     </form>
 </body>
 </html>
