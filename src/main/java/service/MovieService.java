@@ -47,6 +47,7 @@ public class MovieService {
         }
     }
 
+    
     // ID로 영화 조회
     public MovieDetailDTO findById(long id) {
         EntityManager em = DBUtil.getEntityManager();
@@ -65,6 +66,7 @@ public class MovieService {
         }
     }
 
+    
     // 영화 저장 (신규) - 저장 후 MovieResponseDTO 반환
     public MovieResponseDTO save(MovieRequestDTO dto) {
     	
@@ -97,6 +99,7 @@ public class MovieService {
             em.close();
         }
     }
+    
 
     // 영화 수정 - 수정 후 MovieResponseDTO 반환
     public MovieResponseDTO update(int id, MovieRequestDTO dto) {
@@ -132,6 +135,7 @@ public class MovieService {
         }
     }
 
+    
     // 영화 삭제
     public void delete(int id) {
         EntityManager em = DBUtil.getEntityManager();
@@ -156,4 +160,5 @@ public class MovieService {
             em.close();
         }
     }
+    
 }
