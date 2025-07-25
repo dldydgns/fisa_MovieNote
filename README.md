@@ -70,6 +70,12 @@ CRUD 기능 중심,  MVC 패턴과 DB 연동 등을 학습하고 구현한 프�
 📄 pom.xml <br>
 
 ---
+## 📄 API 명세서
+
+<img width="1778" height="137" alt="api명세서" src="https://github.com/user-attachments/assets/c26c9ecc-8242-48d8-8daa-47363957f569" />
+<a href="https://livewsuac-my.sharepoint.com/:x:/g/personal/201910739_live_wsu_ac_kr/EUZrQNvGWtdHocF-8z-TAfIBzwhvicKWGjEMR3UreA_BaA?e=HZsZtK">테이블 보기</a>
+
+---
 
 ## 🧩 설계 과정
 
@@ -91,10 +97,10 @@ CREATE TABLE movie (
 ```
 
 - DB 구조 확인
-<img width="720" height="238" alt="image" src="https://github.com/user-attachments/assets/e8f11102-87ae-4cba-8904-eecbda708e60" />
+<img width="757" height="250" alt="DB구조" src="https://github.com/user-attachments/assets/2f79101a-a4ee-4f8f-9100-2df9e82b6dc4" />
 
 - ERD
-<img width="160" height="160" alt="image" src="https://github.com/user-attachments/assets/04050c4e-04f1-4a40-a987-e6ce8ed84f15" />
+<img width="140" height="237" alt="DB ERD" src="https://github.com/user-attachments/assets/50b0a8f4-ddae-4640-9e99-aa551697ef9d" />
 
 ---
 ### 2.DB 연동
@@ -228,6 +234,10 @@ public class MovieApiController extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String pathInfo = req.getPathInfo();
 
+        req.setAttribute("sort", req.getParameter("sort"));
+        req.setAttribute("page", req.getParameter("page"));
+        req.setAttribute("size", req.getParameter("size"));
+
         if ("/new".equals(pathInfo)) {
         	
         	try {
@@ -238,26 +248,37 @@ public class MovieApiController extends HttpServlet {
                 req.setAttribute("msg", "저장에 성공했습니다.");
                 req.getRequestDispatcher("/WEB-INF/views/movies/success.jsp").forward(req, resp);
         	} catch(Exception e) {
-                req.setAttribute("msg", "저장에 성공했습니다.");
-                req.getRequestDispatcher("/WEB-INF/views/movies/success.jsp").forward(req, resp);
+                req.setAttribute("msg", "저장에 실패했습니다.");
+                req.getRequestDispatcher("/WEB-INF/views/movies/fail.jsp").forward(req, resp);
         	}
 
         } else if (pathInfo != null && pathInfo.matches("/\\d+/edit")) {
         	
-            int id = extractIdFromPath(pathInfo);
-            MovieRequestDTO dto = parseRequest(req);
-            MovieResponseDTO updated = movieService.update(id, dto);
+        	try {
+                int id = extractIdFromPath(pathInfo);
+                MovieRequestDTO dto = parseRequest(req);
+                MovieResponseDTO updated = movieService.update(id, dto);
 
-            req.setAttribute("movie", updated);
-            req.setAttribute("msg", "수정에 성공했습니다.");
-            req.getRequestDispatcher("/WEB-INF/views/movies/success.jsp").forward(req, resp);
+                req.setAttribute("movie", updated);
+                req.setAttribute("msg", "수정에 성공했습니다.");
+                req.getRequestDispatcher("/WEB-INF/views/movies/success.jsp").forward(req, resp);
+        	} catch(Exception e) {
+                req.setAttribute("msg", "저장에 실패했습니다.");
+                req.getRequestDispatcher("/WEB-INF/views/movies/fail.jsp").forward(req, resp);
+        	}
 
         } else if (pathInfo != null && pathInfo.matches("/\\d+/delete")) {
-            int id = extractIdFromPath(pathInfo);
-            movieService.delete(id);
+        	
+        	try {
+                int id = extractIdFromPath(pathInfo);
+                movieService.delete(id);
 
-            req.setAttribute("msg", "삭제에 성공했습니다.");
-            req.getRequestDispatcher("/WEB-INF/views/movies/success.jsp").forward(req, resp);
+                req.setAttribute("msg", "삭제에 성공했습니다.");
+                req.getRequestDispatcher("/WEB-INF/views/movies/success.jsp").forward(req, resp);
+        	} catch(Exception e) {
+                req.setAttribute("msg", "저장에 실패했습니다.");
+                req.getRequestDispatcher("/WEB-INF/views/movies/fail.jsp").forward(req, resp);
+        	}
 
         } else {
             resp.sendError(HttpServletResponse.SC_NOT_FOUND);
@@ -287,6 +308,7 @@ public class MovieApiController extends HttpServlet {
         return -1;
     }
 }
+
 
 ```
  </details>
@@ -322,38 +344,62 @@ public class MoviePageController extends HttpServlet {
 
         if (pathInfo == null || "/".equals(pathInfo)) {
 
-            String sort = req.getParameter("sort");
-            int page = parseIntOrDefault(req.getParameter("page"), 1);
-            int size = parseIntOrDefault(req.getParameter("size"), 15);
+        	String sort = req.getParameter("sort");
+        	if (sort == "" || sort == null || "null".equals(sort)) {
+        	    sort = "dateDesc";
+        	}
+        	int page = parseIntOrDefault(req.getParameter("page"), 1);
+        	int size = parseIntOrDefault(req.getParameter("size"), 15);
+
 
             List<MovieListDTO> movies = movieService.getMovies(sort, page, size);
             
             req.setAttribute("movies", movies);
             req.setAttribute("sort", sort);
+            req.setAttribute("page", page);
+            req.setAttribute("size", size);
             req.getRequestDispatcher("/WEB-INF/views/movies/list.jsp").forward(req, resp);
-            
 
         } else if ("/new".equals(pathInfo)) {
         	
         	req.getRequestDispatcher("/WEB-INF/views/movies/Review_write.jsp").forward(req, resp);
-//        	resp.sendRedirect("/WEB-INF/views/movies/Review_write.jsp");
-//            req.getRequestDispatcher("/WEB-INF/views/movies/new.jsp").forward(req, resp);
 
         } else if (pathInfo.matches("/\\d+/edit")) {
-        	
+
             long id = extractIdFromPath(pathInfo);
             MovieDetailDTO movie = movieService.findById(id);
-            
+
             if (movie == null) {
-            	// id값에 해당하는 정보가 없는것이므로 에러페이지로 이동 필요	??
                 resp.sendError(HttpServletResponse.SC_NOT_FOUND);
                 return;
             }
-            
-            req.setAttribute("movie", movie);
-            req.getRequestDispatcher("/WEB-INF/views/movies/edit.jsp").forward(req, resp);
 
-        } else {
+            String page = req.getParameter("page");
+            String sort = req.getParameter("sort");
+            String size = req.getParameter("size");
+            
+            
+            req.setAttribute("review", movie);
+            req.setAttribute("page", page);  // ✅ 추가
+            req.setAttribute("sort", sort);  // ✅ 추가
+            req.setAttribute("size", size);  // ✅ 추가
+            req.getRequestDispatcher("/WEB-INF/views/movies/Review_edit.jsp").forward(req, resp); // ✅ 파일명도 명확히
+
+            
+        } else if (pathInfo.matches("/\\d+")) {
+        	
+            long id = extractIdFromPath(pathInfo);
+            MovieDetailDTO movie = movieService.findById(id);
+
+            if (movie == null) {
+                resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+                return;
+            }
+
+            req.setAttribute("movie", movie);
+            req.getRequestDispatcher("/WEB-INF/views/movies/detail.jsp").forward(req, resp);
+            
+        }else {
             resp.sendError(HttpServletResponse.SC_NOT_FOUND);
         }
     }
@@ -377,6 +423,7 @@ public class MoviePageController extends HttpServlet {
     }
 }
 
+
 ```
 </details>
 
@@ -385,182 +432,50 @@ public class MoviePageController extends HttpServlet {
   <summary>MovieService.java </summary>
 
 ``` java
-package service;
+package model.domain;
 
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
+
+import javax.persistence.*;
 import java.sql.Date;
-import java.util.List;
-import java.util.stream.Collectors;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityTransaction;
-import javax.persistence.TypedQuery;
+@Entity
+@Table(name = "movie")
+@Getter
+@Setter
+@NoArgsConstructor
+public class Movie {
 
-import model.domain.Movie;
-import model.dto.MovieDetailDTO;
-import model.dto.MovieListDTO;
-import model.dto.MovieRequestDTO;
-import model.dto.MovieResponseDTO;
-import util.DBUtil;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int id;
 
-public class MovieService {
+    private String title;
 
-    // 영화 목록 조회 (정렬 + 페이징)
-    public List<MovieListDTO> getMovies(String sort, int page, int size) {
-        EntityManager em = DBUtil.getEntityManager();
-        
-        try {
-        	
-            String jpql = "SELECT m FROM Movie m";
-            
-            if ("score".equalsIgnoreCase(sort)) {
-                jpql += " ORDER BY m.score DESC";
-            } else if ("date".equalsIgnoreCase(sort)) {
-                jpql += " ORDER BY m.watchDate DESC";
-            } else if ("title".equalsIgnoreCase(sort)) {
-                jpql += " ORDER BY m.title ASC";
-            } else if ("scoreAsc".equalsIgnoreCase(sort)) {
-                jpql += " ORDER BY m.score ASC";
-            } else if ("scoreDesc".equalsIgnoreCase(sort)) {
-                jpql += " ORDER BY m.score DESC";
-            } else if ("dateAsc".equalsIgnoreCase(sort)) {
-                jpql += " ORDER BY m.watchDate ASC";
-            } else if ("dateDesc".equalsIgnoreCase(sort)) {
-                jpql += " ORDER BY m.watchDate DESC";
-            } else {
-                jpql += " ORDER BY m.id ASC"; // 기본 정렬
-            }
-            
-            
+    @Column(name = "createDate")
+    private Date createDate;
 
-            TypedQuery<Movie> query = em.createQuery(jpql, Movie.class);
-            query.setFirstResult((page - 1) * size);
-            query.setMaxResults(size);
-            
-            List<Movie> movies = query.getResultList();
+    @Column(name = "watchDate")
+    private Date watchDate;
 
-            return movies.stream().map(m -> new MovieListDTO(m.getId(), m.getTitle(), m.getScore(), m.getWatchDate()))
-                .collect(Collectors.toList());
+    @Column(columnDefinition = "INT CHECK (score BETWEEN 0 AND 5)")
+    private int score;
 
-        } finally {
-            em.close();
+    @Column(columnDefinition = "TEXT")
+    private String content;
+
+    private boolean isfix;
+    
+    @PrePersist
+    protected void onCreate() {
+        if (this.createDate == null) {
+            this.createDate = new Date(System.currentTimeMillis());
         }
     }
-
-    
-    // ID로 영화 조회
-    public MovieDetailDTO findById(long id) {
-        EntityManager em = DBUtil.getEntityManager();
-        
-        try {
-        	
-            Movie movie = em.find(Movie.class, (int) id);
-            
-            if (movie == null) 
-            	return null;
-            
-            return new MovieDetailDTO(movie.getId(), movie.getTitle(), movie.getContent(), movie.getScore(), movie.getWatchDate());
-            
-        } finally {
-            em.close();
-        }
-    }
-
-    
-    // 영화 저장 (신규) - 저장 후 MovieResponseDTO 반환
-    public MovieResponseDTO save(MovieRequestDTO dto) {
-    	
-        EntityManager em = DBUtil.getEntityManager();
-        EntityTransaction tx = em.getTransaction();
-
-        try {
-        	
-            tx.begin();
-            
-            Movie movie = new Movie();
-            movie.setTitle(dto.getTitle());
-            movie.setContent(dto.getContent());
-            movie.setScore(dto.getScore());
-            movie.setWatchDate(dto.getWatchDate());
-            movie.setCreateDate(new java.sql.Date(System.currentTimeMillis()));
-            movie.setIsfix(false);
-            
-            em.persist(movie);
-            
-            tx.commit();
-
-            return new MovieResponseDTO(movie.getId(), movie.getTitle(), movie.getContent(), movie.getScore(), movie.getWatchDate());
-        
-        } catch (Exception e) {
-            if (tx.isActive())
-            	tx.rollback();
-            throw e;
-        } finally {
-            em.close();
-        }
-    }
-    
-
-    // 영화 수정 - 수정 후 MovieResponseDTO 반환
-    public MovieResponseDTO update(int id, MovieRequestDTO dto) {
-        EntityManager em = DBUtil.getEntityManager();
-        EntityTransaction tx = em.getTransaction();
-
-        try {
-        	
-            tx.begin();
-            
-            Movie movie = em.find(Movie.class, id);
-            
-            if (movie != null) {
-                movie.setTitle(dto.getTitle());
-                movie.setContent(dto.getContent());
-                movie.setScore(dto.getScore());
-                movie.setWatchDate(dto.getWatchDate());
-                
-                em.merge(movie);
-            }
-            
-            tx.commit();
-
-            if (movie == null) return null;
-            
-            return new MovieResponseDTO(movie.getId(), movie.getTitle(), movie.getContent(), movie.getScore(), movie.getWatchDate());
-
-        } catch (Exception e) {
-            if (tx.isActive()) tx.rollback();
-            throw e;
-        } finally {
-            em.close();
-        }
-    }
-
-    
-    // 영화 삭제
-    public void delete(int id) {
-        EntityManager em = DBUtil.getEntityManager();
-        EntityTransaction tx = em.getTransaction();
-
-        try {
-        	
-            tx.begin();
-            
-            Movie movie = em.find(Movie.class, id);
-            
-            if (movie != null) {
-                em.remove(movie);
-            }
-            
-            tx.commit();
-            
-        } catch (Exception e) {
-            if (tx.isActive()) tx.rollback();
-            throw e;
-        } finally {
-            em.close();
-        }
-    }
-    
 }
+
 
 ```
 
@@ -597,105 +512,306 @@ public class MovieDetailDTO {
 
 | JSP 파일명         | 설명                     | 주요 기능                                         | 
 |--------------------|--------------------------|--------------------------------------------------|
-| `list.jsp`         | 영화 감상 리스트 조회 페이지 | 영화 목록 출력, 정렬, 삭제, 페이지네이션                  |       
-| `Review_write.jsp` | 리뷰 작성 폼              | 영화 제목, 시청일, 평점, 내용 입력 후 POST 제출           | 
-| `edit.jsp`         | 리뷰 수정 폼              | 기존 리뷰 정보 불러오기 및 수정 제출                     | 
-| `result.jsp`       | 작성 후 결과 출력         | 영화 ID, 제목, 감상일, 평점, 내용 표시                    | 
+| `list.jsp`         | 영화 감상 리스트 조회 페이지 | 영화 목록 출력, 정렬, 삭제, 페이징                  |  
+| `Review.jsp`      | 리뷰 정보 확인 페이          | 영화 제목, 시청일, 평점, 내용 출력           | 
+| `Review_write.jsp` | 리뷰 작성 폼              | 영화 제목, 시청일, 평점, 내용 입력 후 POST 전송           | 
+| `Review_edit.jsp`         | 리뷰 수정 폼          | 기존 리뷰 정보 불러오기 및 수정 제출                     | 
+| `success.jsp`       | 작업 성공 안내 페이지     | 성공 메시지 출력                    | 
 | `fail.jsp`         | 작업 실패 안내 페이지      | 에러 메시지 출력 및 목록으로 돌아가기 링크                 | 
-| `check.jsp`        | 리뷰 작성 확인 페이지      | 제출 전 리뷰 내용 확인, 수정 버튼 제공                    | 
+| `detail.jsp`        | 리뷰 상세보기 페이지      | 사용자가 등록한 리뷰 상세 조회                    | 
+
 
  <details>
 <summary>list.jsp</summary>
 
 ``` java
-<%@ page contentType="text/html; charset=UTF-8" language="java" %>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-<html>
+<%@ page contentType="text/html;charset=UTF-8"%>
+<%@ page import="java.util.*, model.dto.MovieListDTO"%>
+<%! 
+    private String getOrDefault(String param, String defaultVal) {
+        return (param != null && !"null".equals(param)) ? param : defaultVal;
+    }
+%>
+<%
+List<MovieListDTO> list = (List<MovieListDTO>) request.getAttribute("movies");
+int currentPage = request.getParameter("page") != null ? Integer.parseInt(request.getParameter("page")) : 1;
+int pageSize = 15;
+boolean hasNextPage = list != null && list.size() == pageSize;
+String sort = request.getParameter("sort") != null ? request.getParameter("sort") : "dateDesc";
+%>
+<!DOCTYPE html>
+<html lang="ko">
 <head>
-    <title>작업 성공</title>
-    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
-    <style>
-        * {
-            box-sizing: border-box;
-        }
-        body {
-            font-family: 'Pretendard', sans-serif;
-            background: radial-gradient(circle at top left, #1a1a1a, #0e0e0e);
-            color: #fff;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 40px 20px;
-        }
-        .container {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 40px;
-            max-width: 600px;
-            width: 100%;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
-            text-align: center;
-            animation: fadeIn 0.6s ease-out;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .msg {
-            font-size: 22px;
-            color: #E50914;
-            margin-bottom: 30px;
-        }
-        .movie {
-            text-align: left;
-            background: rgba(255, 255, 255, 0.08);
-            padding: 20px;
-            border-radius: 12px;
-            font-size: 15px;
-            color: #ddd;
-        }
-        .movie p {
-            margin: 10px 0;
-        }
-        a {
-            display: inline-block;
-            margin-top: 30px;
-            padding: 12px 24px;
-            text-decoration: none;
-            border: 1px solid #888;
-            color: #aaa;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-        }
-        a:hover {
-            color: #fff;
-            border-color: #fff;
-            background: rgba(255,255,255,0.1);
-        }
-    </style>
+<meta charset="UTF-8">
+<title>🎬 나의 영화 감상 리스트</title>
+<link
+	href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR&display=swap"
+	rel="stylesheet">
+<style>
+* {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	font-family: 'Noto Sans KR', sans-serif;
+	background: linear-gradient(to right, #141e30, #243b55);
+	color: #fff;
+	padding: 40px 0;
+}
+
+.container {
+	width: 90%;
+	max-width: 1200px;
+	margin: 0 auto;
+}
+
+h2 {
+	text-align: center;
+	font-size: 48px; /* 더 큼 */
+	margin-top: 40px; margin-bottom : 30px;
+	color: #ffffff;
+	margin-bottom: 30px; /* 흰색 */
+}
+
+.top-bar {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 30px;
+}
+
+.new-review-btn {
+	background-color: #e50914;
+	padding: 12px 20px;
+	color: #fff;
+	border: none;
+	border-radius: 5px;
+	font-size: 14px;
+	cursor: pointer;
+	text-decoration: none;
+}
+
+.new-review-btn:hover {
+	background-color: #b00610;
+}
+
+.sort-bar select {
+	background-color: #222;
+	color: #fff;
+	border: 1px solid #444;
+	padding: 10px;
+	border-radius: 4px;
+}
+
+.movie-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+	gap: 20px;
+}
+
+/*
+.movie-card {
+	background-color: #1c1c1c;
+	border-radius: 10px;
+	overflow: hidden;
+	transition: transform 0.3s ease, box-shadow 0.3s ease;
+	padding: 0;
+	position: relative;
+}
+*/
+.movie-card {
+	background-color: #1c1c1c;
+	border-radius: 8px;
+	padding: 12px;
+	transition: transform 0.2s ease;
+	min-height: auto; /* ← 기본 높이만 사용 */
+	height: fit-content; /* ← 내용에 따라 높이 자동 조절 */
+}
+
+.movie-card:hover {
+	transform: scale(1.05);
+	box-shadow: 0 0 15px rgba(229, 9, 20, 0.6);
+}
+
+/*
+.movie-thumbnail {
+	width: 100%;
+	height: 280px;
+	background-image:
+		url('https://via.placeholder.com/300x400?text=No+Image');
+	background-size: cover;
+	background-position: center;
+	border-radius: 10px 10px 0 0;
+}
+*/
+.movie-info {
+	padding: 15px;
+}
+
+.movie-title {
+	font-size: 18px;
+	font-weight: 600;
+	margin-bottom: 5px;
+	color: #fff;
+}
+
+.movie-date, .movie-score {
+	font-size: 14px;
+	color: #ccc;
+	margin-bottom: 6px;
+}
+
+.stars {
+	color: #f5c518;
+	letter-spacing: 1px;
+}
+
+.delete-form {
+	margin-top: 10px;
+}
+
+.delete-btn {
+	background-color: #e50914;
+	border: none;
+	color: white;
+	padding: 6px 10px;
+	font-size: 13px;
+	border-radius: 4px;
+	cursor: pointer;
+}
+
+.pagination {
+	text-align: center;
+	margin-top: 30px;
+}
+
+.pagination a, .pagination span {
+	display: inline-block;
+	margin: 0 6px;
+	padding: 8px 14px;
+	font-size: 14px;
+	border-radius: 4px;
+	text-decoration: none;
+	color: #fff;
+	border: 1px solid #555;
+}
+
+.pagination a:hover {
+	background-color: #e50914;
+}
+
+.pagination span {
+	background-color: #e50914;
+}
+
+.no-data {
+	text-align: center;
+	padding: 40px 0;
+	font-size: 18px;
+	color: #999;
+}
+
+@media ( max-width : 768px) {
+	.movie-grid {
+		grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+		gap: 15px;
+	}
+}
+</style>
 </head>
 <body>
-    <div class="container">
-        <div class="msg">
-            <c:out value="${msg}" />
-        </div>
+	<div class="container">
+		<h2>🎬 MovieNote</h2>
 
-        <c:if test="${not empty movie}">
-            <div class="movie">
-                <p><strong>영화 ID:</strong> <c:out value="${movie.id}" /></p>
-                <p><strong>제목:</strong> <c:out value="${movie.title}" /></p>
-                <p><strong>감상일:</strong> <c:out value="${movie.watchDate}" /></p>
-                <p><strong>평점:</strong> <c:out value="${movie.score}" /></p>
-                <p><strong>내용:</strong><br/><c:out value="${movie.content}" /></p>
-            </div>
-        </c:if>
+		<div class="top-bar">
+		
+			<a href="/MovieNote/movies/new?page=<%= getOrDefault(request.getParameter("page"), "1") %>&sort=<%= getOrDefault(request.getParameter("sort"), "dateDesc") %>&size=<%= getOrDefault(request.getParameter("size"), "15") %>" class="new-review-btn">
+				+ 새로운 리뷰
+			</a>
+			<form class="sort-bar" method="get" action="/MovieNote/movies">
+				<input type="hidden" name="page" value="<%=currentPage%>">
+				<select name="sort" onchange="this.form.submit()">
+					<option value="dateDesc"
+						<%="dateDesc".equals(sort) ? "selected" : ""%>>📅 최신순</option>
+					<option value="dateAsc"
+						<%="dateAsc".equals(sort) ? "selected" : ""%>>📅 오래된순</option>
+					<option value="scoreDesc"
+						<%="scoreDesc".equals(sort) ? "selected" : ""%>>⭐ 평점 높은순</option>
+					<option value="scoreAsc"
+						<%="scoreAsc".equals(sort) ? "selected" : ""%>>⭐ 평점 낮은순</option>
+				</select>
+			</form>
+		</div>
 
-        <a href="${pageContext.request.contextPath}/movies">목록으로 돌아가기</a>
-    </div>
+		<div class="movie-grid">
+			<%
+			if (list != null && !list.isEmpty()) {
+				for (MovieListDTO m : list) {
+					int score = m.getScore();
+					StringBuilder stars = new StringBuilder();
+					for (int i = 0; i < 5; i++) {
+						stars.append(i < score ? "★" : "☆");
+					}
+			%>
+			<div class="movie-card">
+				<a href="/MovieNote/movies/<%=m.getId()%>?
+				sort=<%=request.getParameter("sort")%>&
+				page=<%=request.getParameter("page")%>&
+				size=<%=request.getParameter("size")%>"
+				style="text-decoration: none; color: inherit;">
+					<div class="movie-info">
+						<div class="movie-title"><%=m.getTitle()%></div>
+						<div class="movie-date">
+							시청일:
+							<%=m.getWatchDate()%></div>
+						<div class="movie-score">
+							평점: <span class="stars"><%=stars.toString()%></span>
+						</div>
+					</div>
+				</a>
+				<form class="delete-form" method="post"
+					action="/MovieNote/movies/api/<%=m.getId()%>/delete"
+					onsubmit="return confirm('정말 삭제하시겠습니까?');">
+					<button type="submit" class="delete-btn">삭제</button>
+				</form>
+			</div>
+			<%
+			}
+			} else {
+			%>
+			<div class="no-data">등록된 영화가 없습니다.</div>
+			<%
+			}
+			%>
+		</div>
+
+		<div class="pagination">
+			<%
+			if (currentPage > 1) {
+			%>
+			<a
+				href="/MovieNote/movies?page=<%=currentPage - 1%>&sort=<%=sort%>">◀
+				이전</a>
+			<%
+			}
+			%>
+			<span><%=currentPage%></span>
+			<%
+			if (hasNextPage) {
+			%>
+			<a
+				href="/MovieNote/movies?page=<%=currentPage + 1%>&sort=<%=sort%>">다음
+				▶</a>
+			<%
+			}
+			%>
+		</div>
+	</div>
 </body>
 </html>
+
 
 ```
 </details>
@@ -841,6 +957,7 @@ public class MovieDetailDTO {
 </body>
 </html>
 
+
 ```
 </details>
 
@@ -850,6 +967,11 @@ public class MovieDetailDTO {
 ``` java
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
+<%! 
+    private String getOrDefault(String param, String defaultVal) {
+        return (param != null && !"null".equals(param)) ? param : defaultVal;
+    }
+%>
 <!DOCTYPE html>
 <html>
 <head>
@@ -986,7 +1108,8 @@ public class MovieDetailDTO {
         <textarea name="content" id="content" rows="6" required></textarea>
 
         <button type="submit">작성 완료</button>
-        <button type="button" class="cancel" onclick="location.href='/MovieNote/movies'">취소</button>
+        <button type="button" class="cancel" onclick="location.href='/MovieNote/movies?page=<%= getOrDefault(request.getParameter("page"), "1") %>&sort=<%= getOrDefault(request.getParameter("sort"), "dateDesc") %>&size=<%= getOrDefault(request.getParameter("size"), "15") %>'">취소</button>
+
     </form>
 </body>
 </html>
@@ -1001,9 +1124,10 @@ public class MovieDetailDTO {
 ``` java
 <%@ page contentType="text/html; charset=UTF-8" %>
 <%@ page import="model.dto.MovieDetailDTO" %>
+<%@ page import="java.text.SimpleDateFormat" %>
 
 <%
-	MovieDetailDTO review = (MovieDetailDTO) request.getAttribute("review");
+    MovieDetailDTO review = (MovieDetailDTO) request.getAttribute("review");
     if (review == null) {
 %>
     <p>리뷰 정보를 불러올 수 없습니다.</p>
@@ -1011,7 +1135,9 @@ public class MovieDetailDTO {
         return;
     }
 
-
+    // 날짜 포맷 예시 (필요 시 사용)
+    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+    String formattedWatchDate = (review.getWatchDate() != null) ? sdf.format(review.getWatchDate()) : "";
 %>
 
 <!DOCTYPE html>
@@ -1021,6 +1147,7 @@ public class MovieDetailDTO {
     <title>리뷰 수정</title>
     <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
     <style>
+        /* ...기존 스타일 생략 (변경 없음)... */
         * {
             box-sizing: border-box;
         }
@@ -1120,53 +1247,54 @@ public class MovieDetailDTO {
 </head>
 <body>
     <div class="form-container">
-    <h2>✏️ 영화 리뷰 수정</h2>
+        <h2>✏️ 영화 리뷰 수정</h2>
 
-    <!-- 반드시 POST로 요청 보내야 ReviewController에서 처리됨 -->
-    <form action="<%= request.getContextPath() %>/reviews/edit" method="post">
-        <input type="hidden" name="id" value="<%= review.getId() %>">
+		<form action="<%= request.getContextPath() %>/movies/api/<%= review.getId() %>/edit" method="post">
+            <input type="hidden" name="id" value="<%= review.getId() %>">
+    		<input type="hidden" name="page" value="<%= request.getParameter("page") != null ? request.getParameter("page") : "1" %>">
+    		<input type="hidden" name="sort" value="<%= request.getAttribute("sort") != null ? request.getAttribute("sort") : "" %>">
 
-        <label for="title">영화 제목</label>
-        <input type="text" name="title" id="title" value="<%= review.getTitle() %>" required>
+            <label for="title">영화 제목</label>
+            <input type="text" name="title" id="title" value="<%= review.getTitle() %>" required>
 
-<!--
-        <label for="createDate">작성일</label>
-        <input type="date" name="createDate" id="createDate" value="<%= formattedCreateDate %>" required>
+            <label for="watchDate">시청일</label>
+            <input type="date" name="watchDate" id="watchDate" value="<%= formattedWatchDate %>">
 
-        <label for="watchDate">시청일</label>
-        <input type="date" name="watchDate" id="watchDate" value="<%= formattedWatchDate %>">
-  -->
-        <label for="score">평점</label>
-        <select name="score" id="score" required>
-            <option value="">선택하세요</option>
-<%
-    for (int i = 1; i <= 5; i++) {
-        String stars = "⭐".repeat(i);
-        String selected = (review.getScore() == i) ? "selected" : "";
-%>
-        <option value="<%= i %>" <%= selected %>><%= stars %></option>
-<%
-    }
-%>
-        </select>
+            <label for="score">평점</label>
+            <select name="score" id="score" required>
+                <option value="">선택하세요</option>
+                <% for (int i = 1; i <= 5; i++) {
+                       String stars = "⭐".repeat(i);
+                       String selected = (review.getScore() == i) ? "selected" : "";
+                %>
+                    <option value="<%= i %>" <%= selected %>><%= stars %></option>
+                <% } %>
+            </select>
 
-        <label for="content">리뷰 내용</label>
-        <textarea name="content" id="content" rows="6" required><%= review.getContent() %></textarea>
+            <label for="content">리뷰 내용</label>
+            <textarea name="content" id="content" rows="6" required><%= review.getContent() %></textarea>
 
-        <label for="isfix">수정 여부</label>
-        <select name="isfix" id="isfix" required>
-            <option value="">선택하세요</option>
-            <!-- 
-            <option value="true" <%= review.isIsfix() ? "selected" : "" %>>예</option>
-            <option value="false" <%= !review.isIsfix() ? "selected" : "" %>>아니오</option>
-              -->
-        </select>
+            <!-- isfix 필드는 현재 MovieDetailDTO에 없으므로 주석처리
+            <label for="isfix">수정 여부</label>
+            <select name="isfix" id="isfix" required>
+                <option value="">선택하세요</option>
+                <option value="true">예</option>
+                <option value="false">아니오</option>
+            </select>
+            -->
 
-        <button type="submit">수정 완료</button>
-        <button type="button" class="cancel" onclick="location.href='<%= request.getContextPath() %>/reviews'">취소</button>
-    </form>
+            <div class="button-group">
+                <button type="submit" class="submit-btn">수정 완료</button>
+				<button type="button" class="cancel-btn" 
+				    onclick="location.href='<%= request.getContextPath() %>/movies/<%= review.getId() %>?sort=<%= request.getParameter("sort") != null ? request.getParameter("sort") : "" %>&page=<%= request.getParameter("page") != null ? request.getParameter("page") : "" %>&size=<%= request.getParameter("size") != null ? request.getParameter("size") : "" %>'">
+				    취소
+				</button>
+            </div>
+        </form>
+    </div>
 </body>
 </html>
+
 
 
 ```
@@ -1260,7 +1388,7 @@ public class MovieDetailDTO {
             </div>
         </c:if>
 
-        <a href="${pageContext.request.contextPath}/movies">목록으로 돌아가기</a>
+        <a href="${pageContext.request.contextPath}/movies?sort=${sort}&page=${page}&size=${size}">목록으로 돌아가기</a>
     </div>
 </body>
 </html>
@@ -1290,38 +1418,166 @@ public class MovieDetailDTO {
             <c:out value="${msg}" />
         </div>
 
-        <a href="${pageContext.request.contextPath}/movies">목록으로 돌아가기</a>
+        <a href="${pageContext.request.contextPath}/movies?sort=${sort}&page=${page}&size=${size}">목록으로 돌아가기</a>
     </div>
 </body>
 </html>
 
 
+
 ```
+</details>
+
+<details>
+<summary>detail.jsp</summary>
+<%@ page contentType="text/html;charset=UTF-8" %>
+<%@ page import="model.dto.MovieDetailDTO" %>
+<%! 
+    private String getOrDefault(String param, String defaultVal) {
+        return (param != null && !"null".equals(param)) ? param : defaultVal;
+    }
+%>
+<%
+    MovieDetailDTO movie = (MovieDetailDTO) request.getAttribute("movie");
+%>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title><%= movie.getTitle() %> - 상세 보기</title>
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #141414;
+            color: #fff;
+            padding: 40px;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            background-color: #1c1c1c;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 0 10px rgba(229, 9, 20, 0.3);
+        }
+
+        h1 {
+            font-size: 32px;
+            color: #e50914;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #444;
+            padding-bottom: 10px;
+        }
+
+        .info {
+            font-size: 18px;
+            margin-bottom: 14px;
+        }
+
+        .stars {
+            color: #f5c518;
+            font-size: 20px;
+        }
+
+        .button-group {
+            margin-top: 30px;
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 16px;
+            font-size: 14px;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: 0.2s;
+            border: 1px solid transparent;
+            cursor: pointer;
+        }
+
+        .btn-back {
+            background-color: transparent;
+            color: #f5c518;
+            border: 1px solid #f5c518;
+        }
+
+        .btn-back:hover {
+            background-color: #f5c518;
+            color: #141414;
+        }
+
+        .btn-edit {
+            background-color: #e50914;
+            color: #fff;
+        }
+
+        .btn-edit:hover {
+            background-color: #b00610;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1><%= movie.getTitle() %></h1>
+
+    <div class="info">
+        <strong>🗓 시청일:</strong> <%= movie.getWatchDate() %>
+    </div>
+
+    <div class="info">
+        <strong>⭐ 평점:</strong> 
+        <span class="stars">
+            <%
+                for (int i = 0; i < 5; i++) {
+                    out.print(i < movie.getScore() ? "★" : "☆");
+                }
+            %>
+        </span>
+    </div>
+
+    <div class="info">
+        <strong>📝 리뷰:</strong><br>
+        <pre style="white-space: pre-wrap;"><%= movie.getContent() %></pre>
+    </div>
+
+    <div class="button-group">
+		<a href="/MovieNote/movies?page=<%= getOrDefault(request.getParameter("page"), "1") %>&sort=<%= getOrDefault(request.getParameter("sort"), "dateDesc") %>&size=<%= getOrDefault(request.getParameter("size"), "15") %>" class="btn btn-back">← 목록으로</a>
+		<a href="/MovieNote/movies/<%= movie.getId() %>/edit?page=<%= request.getParameter("page") != null ? request.getParameter("page") : "" %>&sort=<%= request.getParameter("sort") != null ? request.getParameter("sort") : "" %>&size=<%= request.getParameter("size") != null ? request.getParameter("size") : "" %>" class="btn btn-edit">✏ 수정하기</a>
+
+    </div>
+</div>
+</body>
+</html>
+
 </details>
 
 ---
 ## 🖼️ 화면 시안
 
 ### 영화 리뷰 작성화면
-<img width="1920" height="1020" alt="image" src="https://github.com/user-attachments/assets/1fa1e9fa-5212-4944-a77c-8d1116f4ca44" />
+<img width="1920" height="1020" alt="영화 리뷰 작성화면" src="https://github.com/user-attachments/assets/9a1d7a26-d930-40cb-8c7b-c6393b6ffbc6" />
 <br>
-- 영화제목 작성
-<img width="1920" height="1020" alt="image" src="https://github.com/user-attachments/assets/b7109a61-590c-45f7-9508-eb669fa5097f" />
-<br>
-- 평점 입력(별 1~5개)
-<img width="1920" height="1019" alt="image" src="https://github.com/user-attachments/assets/deabd689-e234-4fb4-a6ef-0a8f75ec8c59" />
-<br>
-- 시청일 및 리뷰 작성
-<img width="1920" height="1020" alt="image" src="https://github.com/user-attachments/assets/87febcc7-19d5-4887-b203-c2112669817e" />
-<br>
-- 작성 완료 클릭 시
-<img width="1920" height="1020" alt="image" src="https://github.com/user-attachments/assets/ae86394b-fa99-4fb8-965c-c93b24a9f556" />
 
----
-## ⚠️ 트러블 슈팅
-- ???
+- 영화제목 작성
+<img width="1920" height="1020" alt="영화 제목 작성" src="https://github.com/user-attachments/assets/7e425780-b74a-4289-9e93-6439d7f3a23b" />
+<br>
+
+- 평점 입력(별 1~5개)
+<img width="1920" height="1019" alt="평점 선택" src="https://github.com/user-attachments/assets/ea0e15d2-6d56-471e-ae30-3492c66a2554" />
+<br>
+
+- 시청일 및 리뷰 작성
+<img width="1920" height="1020" alt="영화 리뷰 작성" src="https://github.com/user-attachments/assets/40aed043-f0ca-45f5-8b49-27646bc30f86" />
+<br>
+
+- 작성 완료 클릭 시
+<img width="1920" height="1020" alt="저장성공 팝업" src="https://github.com/user-attachments/assets/2f918377-8afd-4751-ad2d-67829c1de10a" />
+
+
 
 ---
 ## 🛠️ 고찰
-- 추후 각 사용자 IP에 따른 로그인 기능 구현
+- 향후 각 사용자 IP에 따른 로그인 기능 구현
 - 각 기능별 테스트 시나리오 구성해서 테스트 필요
