@@ -17,14 +17,5 @@ public class MovieResponseDTO {
     private String content;
     private int score;
     private Date watchDate;
-
-    // Entity -> DTO 변환 생성자
-    public MovieResponseDTO(Movie movie) {
-        this.id = movie.getId();
-        this.title = movie.getTitle();
-        this.content = movie.getContent();
-        this.score = movie.getScore();
-        this.watchDate = movie.getWatchDate();
-    }
 }
 

@@ -1,14 +1,15 @@
 package controller;
 
 import java.io.IOException;
+import java.sql.Date;
 
-import model.dto.MovieResponseDTO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.dto.MovieRequestDTO;
+import model.dto.MovieResponseDTO;
 import service.MovieService;
 
 @WebServlet("/movies/api/*")
@@ -51,33 +52,19 @@ public class MovieApiController extends HttpServlet {
         }
     }
 
+    
     private MovieRequestDTO parseRequest(HttpServletRequest req) throws IOException {
         req.setCharacterEncoding("UTF-8");
 
         return MovieRequestDTO.builder()
                 .title(req.getParameter("title"))
-                .score(parseInt(req.getParameter("score")))
+                .score(Integer.parseInt(req.getParameter("score")))
                 .content(req.getParameter("content"))
-                .watchDate(parseDate(req.getParameter("watchDate")))
+                .watchDate(Date.valueOf(req.getParameter("watchDate")))
                 .build();
     }
 
-    private Integer parseInt(String value) {
-        try {
-            return value != null ? Integer.parseInt(value) : null;
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    private java.sql.Date parseDate(String value) {
-        try {
-            return value != null ? java.sql.Date.valueOf(value) : null;
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
+    
     private int extractIdFromPath(String pathInfo) {
         String[] parts = pathInfo.split("/");
         for (String part : parts) {
