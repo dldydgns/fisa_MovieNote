@@ -37,7 +37,8 @@ public class MoviePageController extends HttpServlet {
 
         } else if ("/new".equals(pathInfo)) {
         	
-        	resp.sendRedirect("/WEB-INF/views/movies/Review_write.jsp");
+        	req.getRequestDispatcher("/WEB-INF/views/movies/Review_write.jsp").forward(req, resp);
+//        	resp.sendRedirect("/WEB-INF/views/movies/Review_write.jsp");
 //            req.getRequestDispatcher("/WEB-INF/views/movies/new.jsp").forward(req, resp);
 
         } else if (pathInfo.matches("/\\d+/edit")) {
