@@ -42,20 +42,36 @@ public class MoviePageController extends HttpServlet {
 //            req.getRequestDispatcher("/WEB-INF/views/movies/new.jsp").forward(req, resp);
 
         } else if (pathInfo.matches("/\\d+/edit")) {
-        	
+
             long id = extractIdFromPath(pathInfo);
             MovieDetailDTO movie = movieService.findById(id);
-            
+
             if (movie == null) {
-            	// id값에 해당하는 정보가 없는것이므로 에러페이지로 이동 필요	??
                 resp.sendError(HttpServletResponse.SC_NOT_FOUND);
                 return;
             }
-            
-            req.setAttribute("movie", movie);
-            req.getRequestDispatcher("/WEB-INF/views/movies/edit.jsp").forward(req, resp);
 
-        } else {
+            String page = req.getParameter("page");
+            String sort = req.getParameter("sort");
+            
+            req.setAttribute("review", movie);
+            req.setAttribute("page", page);  // ✅ 추가
+            req.setAttribute("sort", sort);  // ✅ 추가
+            req.getRequestDispatcher("/WEB-INF/views/movies/Review_edit.jsp").forward(req, resp); // ✅ 파일명도 명확히
+
+            
+        } else if (pathInfo.matches("/\\d+")) {
+            long id = extractIdFromPath(pathInfo);
+            MovieDetailDTO movie = movieService.findById(id);
+
+            if (movie == null) {
+                resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+                return;
+            }
+
+            req.setAttribute("movie", movie);
+            req.getRequestDispatcher("/WEB-INF/views/movies/detail.jsp").forward(req, resp);
+        }else {
             resp.sendError(HttpServletResponse.SC_NOT_FOUND);
         }
     }

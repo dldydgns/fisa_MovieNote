@@ -1,8 +1,9 @@
 <%@ page contentType="text/html; charset=UTF-8" %>
 <%@ page import="model.dto.MovieDetailDTO" %>
+<%@ page import="java.text.SimpleDateFormat" %>
 
 <%
-	MovieDetailDTO review = (MovieDetailDTO) request.getAttribute("review");
+    MovieDetailDTO review = (MovieDetailDTO) request.getAttribute("review");
     if (review == null) {
 %>
     <p>리뷰 정보를 불러올 수 없습니다.</p>
@@ -10,7 +11,9 @@
         return;
     }
 
-
+    // 날짜 포맷 예시 (필요 시 사용)
+    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+    String formattedWatchDate = (review.getWatchDate() != null) ? sdf.format(review.getWatchDate()) : "";
 %>
 
 <!DOCTYPE html>
@@ -20,6 +23,7 @@
     <title>리뷰 수정</title>
     <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
     <style>
+        /* ...기존 스타일 생략 (변경 없음)... */
         * {
             box-sizing: border-box;
         }
@@ -119,50 +123,47 @@
 </head>
 <body>
     <div class="form-container">
-    <h2>✏️ 영화 리뷰 수정</h2>
+        <h2>✏️ 영화 리뷰 수정</h2>
 
-    <!-- 반드시 POST로 요청 보내야 ReviewController에서 처리됨 -->
-    <form action="<%= request.getContextPath() %>/reviews/edit" method="post">
-        <input type="hidden" name="id" value="<%= review.getId() %>">
+        <form action="<%= request.getContextPath() %>/reviews/edit" method="post">
+            <input type="hidden" name="id" value="<%= review.getId() %>">
+    		<input type="hidden" name="page" value="<%= request.getParameter("page") != null ? request.getParameter("page") : "1" %>">
+    		<input type="hidden" name="sort" value="<%= request.getAttribute("sort") != null ? request.getAttribute("sort") : "" %>">
 
-        <label for="title">영화 제목</label>
-        <input type="text" name="title" id="title" value="<%= review.getTitle() %>" required>
+            <label for="title">영화 제목</label>
+            <input type="text" name="title" id="title" value="<%= review.getTitle() %>" required>
 
-<!--
-        <label for="createDate">작성일</label>
-        <input type="date" name="createDate" id="createDate" value="<%= formattedCreateDate %>" required>
+            <label for="watchDate">시청일</label>
+            <input type="date" name="watchDate" id="watchDate" value="<%= formattedWatchDate %>">
 
-        <label for="watchDate">시청일</label>
-        <input type="date" name="watchDate" id="watchDate" value="<%= formattedWatchDate %>">
-  -->
-        <label for="score">평점</label>
-        <select name="score" id="score" required>
-            <option value="">선택하세요</option>
-<%
-    for (int i = 1; i <= 5; i++) {
-        String stars = "⭐".repeat(i);
-        String selected = (review.getScore() == i) ? "selected" : "";
-%>
-        <option value="<%= i %>" <%= selected %>><%= stars %></option>
-<%
-    }
-%>
-        </select>
+            <label for="score">평점</label>
+            <select name="score" id="score" required>
+                <option value="">선택하세요</option>
+                <% for (int i = 1; i <= 5; i++) {
+                       String stars = "⭐".repeat(i);
+                       String selected = (review.getScore() == i) ? "selected" : "";
+                %>
+                    <option value="<%= i %>" <%= selected %>><%= stars %></option>
+                <% } %>
+            </select>
 
-        <label for="content">리뷰 내용</label>
-        <textarea name="content" id="content" rows="6" required><%= review.getContent() %></textarea>
+            <label for="content">리뷰 내용</label>
+            <textarea name="content" id="content" rows="6" required><%= review.getContent() %></textarea>
 
-        <label for="isfix">수정 여부</label>
-        <select name="isfix" id="isfix" required>
-            <option value="">선택하세요</option>
-            <!-- 
-            <option value="true" <%= review.isIsfix() ? "selected" : "" %>>예</option>
-            <option value="false" <%= !review.isIsfix() ? "selected" : "" %>>아니오</option>
-              -->
-        </select>
+            <!-- isfix 필드는 현재 MovieDetailDTO에 없으므로 주석처리
+            <label for="isfix">수정 여부</label>
+            <select name="isfix" id="isfix" required>
+                <option value="">선택하세요</option>
+                <option value="true">예</option>
+                <option value="false">아니오</option>
+            </select>
+            -->
 
-        <button type="submit">수정 완료</button>
-        <button type="button" class="cancel" onclick="location.href='<%= request.getContextPath() %>/reviews'">취소</button>
-    </form>
+            <div class="button-group">
+                <button type="submit" class="submit-btn">수정 완료</button>
+                <button type="button" class="cancel-btn" onclick="location.href='<%= request.getContextPath() %>/reviews/edit'">취소</button>
+            </div>
+        </form>
+    </div>
 </body>
 </html>

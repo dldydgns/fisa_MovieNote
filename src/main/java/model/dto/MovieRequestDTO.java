@@ -15,3 +15,5 @@ public class MovieRequestDTO {
     private int score;
     private Date watchDate;
 }
+
+
