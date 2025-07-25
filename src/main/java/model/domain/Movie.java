@@ -33,9 +33,6 @@ public class Movie {
     private String content;
 
     private boolean isfix;
-<<<<<<< HEAD
-}
-=======
     
     @PrePersist
     protected void onCreate() {
@@ -44,4 +41,3 @@ public class Movie {
         }
     }
 }
->>>>>>> develop

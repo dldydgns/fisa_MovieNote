@@ -31,12 +31,12 @@ public class MoviePageController extends HttpServlet {
             List<MovieListDTO> movies = movieService.getMovies(sort, page, size);
             
             req.setAttribute("movies", movies);
-            req.getRequestDispatcher("/WEB-INF/views/movies/list.jsp").forward(req, resp);
+            req.getRequestDispatcher("/MovieNote/views/movies/list.jsp").forward(req, resp);
             
 
         } else if ("/new".equals(pathInfo)) {
         	
-        	resp.sendRedirect("/WEB-INF/views/movies/new.jsp");
+        	resp.sendRedirect("/MovieNote/views/movies/new.jsp");
 //            req.getRequestDispatcher("/WEB-INF/views/movies/new.jsp").forward(req, resp);
 
         } else if (pathInfo.matches("/\\d+/edit")) {
@@ -51,7 +51,7 @@ public class MoviePageController extends HttpServlet {
             }
             
             req.setAttribute("movie", movie);
-            req.getRequestDispatcher("/WEB-INF/views/movies/edit.jsp").forward(req, resp);
+            req.getRequestDispatcher("/MovieNote/views/movies/edit.jsp").forward(req, resp);
 
         } else {
             resp.sendError(HttpServletResponse.SC_NOT_FOUND);

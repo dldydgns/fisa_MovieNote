@@ -28,7 +28,7 @@ public class MovieApiController extends HttpServlet {
 
             req.setAttribute("movie", saved);
             req.setAttribute("msg", "저장에 성공했습니다.");
-            req.getRequestDispatcher("/WEB-INF/views/movies/result.jsp").forward(req, resp);
+            req.getRequestDispatcher("/MovieNote/views/movies/result.jsp").forward(req, resp);
 
         } else if (pathInfo != null && pathInfo.matches("/\\d+/edit")) {
         	
@@ -38,14 +38,14 @@ public class MovieApiController extends HttpServlet {
 
             req.setAttribute("movie", updated);
             req.setAttribute("msg", "수정에 성공했습니다.");
-            req.getRequestDispatcher("/WEB-INF/views/movies/result.jsp").forward(req, resp);
+            req.getRequestDispatcher("/MovieNote/views/movies/result.jsp").forward(req, resp);
 
         } else if (pathInfo != null && pathInfo.matches("/\\d+/delete")) {
             int id = extractIdFromPath(pathInfo);
             movieService.delete(id);
 
             req.setAttribute("msg", "삭제에 성공했습니다.");
-            req.getRequestDispatcher("/WEB-INF/views/movies/result.jsp").forward(req, resp);
+            req.getRequestDispatcher("/MovieNote/views/movies/result.jsp").forward(req, resp);
 
         } else {
             resp.sendError(HttpServletResponse.SC_NOT_FOUND);
